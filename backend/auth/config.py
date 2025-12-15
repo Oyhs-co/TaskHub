@@ -1,26 +1,22 @@
 import os
 import dotenv
-import logging as log
-from ..core.logging import setup_logging
+from pydantic_settings import BaseSettings
 
 dotenv.load_dotenv()
 
-setup_logging(service_name="auth-service",
-              level=os.getenv("LOG_LEVEL", "INFO"),
-              log_to_file=os.getenv("LOG_TO_FILE", "False") == "True",
-              file_path=os.getenv("LOG_FILE_PATH", "auth_service.log"))
 
-
-class Settings:
+class Settings(BaseSettings):
     """
     Configuración central del AuthService.
     Actúa como punto único de configuración (Singleton lógico).
     """
 
-    log.getLogger("auth-service").info(
-        "Cargando configuración del AuthService")
-
     try:
+        ENV: str = "development"
+        API_VERSION: str = "v1"
+        SERVICE_NAME: str = "auth-service"
+        HOST: str = os.getenv("HOST", "localhost")
+        PORT: int = int(os.getenv("PORT", 8001))
         SUPABASE_URL: str = os.getenv("SUPABASE_URL",
                                       "https://your-supabase-url.supabase.co")
         SUPABASE_ANON_KEY: str = os.getenv("SUPABASE_ANON_KEY",
@@ -33,9 +29,13 @@ class Settings:
                                                 "HS256")
         SUPABASE_JWT_AUDIENCE: str = os.getenv("SUPABASE_JWT_AUDIENCE",
                                                "authenticated")
+        LOG_LEVEL: str = os.getenv("LOG_LEVEL", "INFO")
+
+        class Config:
+            env_file = ".env"
+            env_file_encoding = "utf-8"
+
     except Exception as e:
-        log.getLogger("auth-service").error(
-            f"Error cargando configuración: {e}")
         raise e
 
 

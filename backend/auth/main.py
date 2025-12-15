@@ -1,12 +1,30 @@
 from fastapi import FastAPI
-from backend.auth.routers.auth_router import auth_router
+from .routers.auth_router import auth_router
+from .log.logger import get_logger
+from .config import settings
+from fastapi.middleware.cors import CORSMiddleware
+from .middleware.logging import ServiceLoggingMiddleware
+
+logger = get_logger(settings.SERVICE_NAME)
 
 app = FastAPI(title="Auth Service",
               version="1.0.0",
               description="Servicio de autenticación para TaskHub"
               )
 
+app.add_middleware(ServiceLoggingMiddleware,
+                   logger=logger,
+                   service_name=settings.SERVICE_NAME)
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 app.include_router(auth_router)
+
+app.version = settings.API_VERSION
 
 
 @app.get("/")
@@ -38,4 +56,4 @@ def debug_info():
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    uvicorn.run(app, host=settings.HOST, port=settings.PORT)

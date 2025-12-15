@@ -2,7 +2,7 @@ from jose import JWTError, jwt
 from fastapi import HTTPException
 from typing import Dict, Any
 from ..config import settings
-from ..utils.token import TokenPayload
+from .token import TokenPayload
 
 
 class JWTService:
