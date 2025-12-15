@@ -1,9 +1,7 @@
 from fastapi import HTTPException
 from typing import Dict, Any, Literal
 from ..utils.supabase import supabase_client
-from ..utils.token import TokenPayload
 from ..utils.user import UserIdentity
-from ..utils.JWT import jwt_service
 
 
 class AuthService:
@@ -94,15 +92,35 @@ class AuthService:
                 detail="Unexpected error during OAuth login",
             ) from exc
 
-    def validate(self, token: str) -> TokenPayload:
+    def verify(self, token: str) -> dict:
+        """
+        Verifica la validez del token JWT y extrae la información del usuario.
+
+        inputs:
+            token: Token JWT a verificar.
+        outputs:
+            dict: Datos del usuario verificado.
+        """
         try:
-            return jwt_service.validate_token(token)
+            user = supabase_client.auth().get_user(token).user
+
+            if not user:
+                raise HTTPException(status_code=401, detail="Invalid token")
+
+            return {
+                "user_id": user.id,
+                "email": user.email,
+                "email_verified": user.email_confirmed_at is not None,
+                "onboarding_completed": False,  # luego DB propia
+                "roles": ["user"],
+            }
+
         except HTTPException:
             raise
         except Exception as exc:
             raise HTTPException(
                 status_code=500,
-                detail="Unexpected error during token validation",
+                detail="Unexpected error during token verification",
             ) from exc
 
     def _create_guide_project(self, user_id: str) -> None:

@@ -33,10 +33,10 @@ def login_oauth(provider: Literal["google", "github"], redirect_to: str):
 log.getLogger("auth-service").info("Ruta /login/oauth cargada")
 
 
-@auth_router.get("/validate")
-def validate_token(authorization: str = Header(...)):
+@auth_router.get("/verify")
+def verify(authorization: str = Header(...)):
     token = extract_bearer_token(authorization)
-    return auth_service.validate(token).to_dict()
+    return auth_service.verify(token)
 
 
 log.getLogger("auth-service").info("Ruta /validate cargada")
