@@ -6,10 +6,30 @@ auth_client = AuthClient()
 
 
 class AuthRequiredMiddleware(BaseHTTPMiddleware):
+
+    PUBLIC_PATHS = ("/auth/register",
+                    "/auth/login",
+                    "/auth/login/oauth",
+                    "/health",
+                    "/docs",
+                    "/debug",
+                    "/openapi.json",
+                    "/auth",
+                    "/")
+
     async def dispatch(self, request: Request, call_next):
 
+        """
+        Middleware para requerir autenticación en las rutas protegidas.
+        inputs:
+            request: Objeto Request de FastAPI.
+            call_next: Función para continuar con la cadena de middlewares.
+        outputs:
+            response: Objeto Response de FastAPI.
+        """
+
         # Rutas públicas
-        if request.url.path.startswith("/auth"):
+        if request.url.path.startswith(self.PUBLIC_PATHS):
             return await call_next(request)
 
         # Usuario maestro ya validado
